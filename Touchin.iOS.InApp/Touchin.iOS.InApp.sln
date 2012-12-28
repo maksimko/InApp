@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Touchin.iOS.InApp", "Touchin.iOS.InApp.csproj", "{697D4B56-0EC4-47B5-B76F-A8615362E324}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Release_LITE|iPhone = Release_LITE|iPhone
+		Debug_LITE|iPhoneSimulator = Debug_LITE|iPhoneSimulator
+		Debug_LITE|iPhone = Debug_LITE|iPhone
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug_LITE|iPhone.ActiveCfg = Debug_LITE|iPhone
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug_LITE|iPhone.Build.0 = Debug_LITE|iPhone
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug_LITE|iPhoneSimulator.ActiveCfg = Debug_LITE|iPhoneSimulator
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug_LITE|iPhoneSimulator.Build.0 = Debug_LITE|iPhoneSimulator
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Release_LITE|iPhone.ActiveCfg = Release_LITE|iPhone
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Release_LITE|iPhone.Build.0 = Release_LITE|iPhone
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{697D4B56-0EC4-47B5-B76F-A8615362E324}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Touchin.iOS.InApp.csproj
+	EndGlobalSection
+EndGlobal
