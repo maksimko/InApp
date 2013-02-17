@@ -10,7 +10,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Touchin.iOS.InApp</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <ReleaseVersion>0.9.4</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -71,6 +70,7 @@
     <Compile Include="Common\EmptyLogger.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\JsonValueExtensions.cs" />
+    <Compile Include="Common\LogMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensions\" />

@@ -18,15 +18,18 @@ namespace Touchin.iOS.InApp
 
 	public interface InAppManagerInterface
 	{
-		event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 		event Action<NSError> ProductRequestFailed;
 		event Action<InAppManagerInterface> ProductRequestSucceed;
+		event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionInitiated;
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
-		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentRestoreTransactionSucceed;
+		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;
 						
+		event Action<InAppManagerInterface> RestoreSucceed;
+		event Action<InAppManagerInterface, NSError> RestoreFailed;
+
 		Dictionary<string, SKProduct> AvaliableProducts { get; }
 		List<string> NotAvaliableProducts { get; }
 		bool CanMakePayments { get; }
@@ -45,14 +48,17 @@ namespace Touchin.iOS.InApp
 
 	public class InAppManager : SKProductsRequestDelegate, InAppManagerInterface
 	{
+		public event Action<InAppManagerInterface> ProductRequestSucceed;
 		public event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 		public event Action<NSError> ProductRequestFailed;
-		public event Action<InAppManagerInterface> ProductRequestSucceed;
 
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionInitiated;
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentRestoreTransactionSucceed;		
+		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;		
+
+		public event Action<InAppManagerInterface> RestoreSucceed;
+		public event Action<InAppManagerInterface, NSError> RestoreFailed;
 
 		private SKPaymentTransactionObserver _paymentTransactionObserver;		
 		private SKProductsRequest _productsRequest;
@@ -205,15 +211,16 @@ namespace Touchin.iOS.InApp
 			SendErorrData("InApp products request failed.", error);
 		}
 
-		internal void CompletePaymentTransaction(SKPaymentTransaction transaction, bool isSuccessfull = true)
+		internal void RaiseCompletePaymentTransaction(SKPaymentTransaction transaction, bool isSuccessfull = true)
 		{
 			IsPurchasing = false;
+
+			SKPaymentQueue.DefaultQueue.FinishTransaction(transaction);
 
 			var isValid = VerificationManager.Instance.VerifyPurchase(transaction);
 
 			if (isValid && isSuccessfull)
 			{
-				SKPaymentQueue.DefaultQueue.FinishTransaction(transaction);
 				PaymentTransactionSucceed.Raise(_inAppManagerInstance, transaction);
 			}
 			else
@@ -229,18 +236,30 @@ namespace Touchin.iOS.InApp
 			PaymentTransactionInitiated.Raise(_inAppManagerInstance, transaction);
 		}
 
-		internal void RestorePaymentTransaction(SKPaymentTransaction transaction)
+		internal void RaiseRestoredPaymentTransaction(SKPaymentTransaction transaction)
 		{
-			CompletePaymentTransaction(transaction);
+			RaiseCompletePaymentTransaction(transaction);
 
-			PaymentRestoreTransactionSucceed.Raise(_inAppManagerInstance, transaction);
+			PaymentTransactionRestored.Raise(_inAppManagerInstance, transaction);
 		}
 
-		internal void FailedPaymentTransaction(SKPaymentTransaction transaction)
+		internal void RaiseFailedPaymentTransaction(SKPaymentTransaction transaction)
 		{
-			CompletePaymentTransaction(transaction, false);
+			RaiseCompletePaymentTransaction(transaction, false);
 
 			SendErorrData("InApp payment transaction failed.", transaction.Error);
+		}
+
+		internal void RaiseRestoreSucceed()
+		{
+			RestoreSucceed.Raise(_inAppManagerInstance);
+		}
+		
+		internal void RaiseRestoreFailed(NSError error)
+		{
+			RestoreFailed.Raise(_inAppManagerInstance, error);
+			
+			SendErorrData("InApp restore completed transactions.", error);
 		}
 
 		internal void AddPayment(SKPayment payment)

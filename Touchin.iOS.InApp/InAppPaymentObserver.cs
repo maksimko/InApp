@@ -24,16 +24,26 @@ namespace Touchin.iOS.InApp
 						_inAppManager.RaisePaymentTransactionInitiated(transaction);
 						break;
 					case SKPaymentTransactionState.Purchased:
-						_inAppManager.CompletePaymentTransaction(transaction);
+						_inAppManager.RaiseCompletePaymentTransaction(transaction);
 						break;
 					case SKPaymentTransactionState.Restored:
-						_inAppManager.RestorePaymentTransaction(transaction);
+						_inAppManager.RaiseRestoredPaymentTransaction(transaction);
 						break;
 					case SKPaymentTransactionState.Failed:
-						_inAppManager.FailedPaymentTransaction(transaction);
+						_inAppManager.RaiseFailedPaymentTransaction(transaction);
 						break;
 				}
 			}
+		}
+
+		public override void PaymentQueueRestoreCompletedTransactionsFinished(SKPaymentQueue queue)
+		{
+			_inAppManager.RaiseRestoreSucceed();
+		}
+		
+		public override void RestoreCompletedTransactionsFailedWithError(SKPaymentQueue queue, NSError error)
+		{
+			_inAppManager.RaiseRestoreFailed(error);
 		}
 	}
 }
