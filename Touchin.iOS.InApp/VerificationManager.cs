@@ -12,7 +12,7 @@ namespace Touchin.iOS.InApp
 {
 	internal class VerificationManager
 	{
-		const string TransactionsIdSettingsKey = @"SoonerTransactions";
+		const string TransactionsIdSettingsKey = @"InAppTransactions";
 		const string ContentProviderSharedSecret = "";
 		const string RealVerificationServerUrl = "https://buy.itunes.apple.com/verifyReceipt";
 		const string SandboxVerificationServerUrl = "https://sandbox.itunes.apple.com/verifyReceipt";
@@ -63,7 +63,7 @@ namespace Touchin.iOS.InApp
 			if (!isValid)
 				return isValid;
 			
-			var message = new LogMessage("VerifyPurchase (transaction and receipt are valid)", Logger);
+			var message = new LogMessage("VerifyPurchase", Logger);
 			
 			var jsonObjectString = EncodeBase64 (transaction.TransactionReceipt.ToString());			
 			var payload = @"{""receipt-data"" : """ + jsonObjectString + @""", ""password"" : """ + ContentProviderSharedSecret + @"""}";
@@ -134,35 +134,35 @@ namespace Touchin.iOS.InApp
 			
 			if (verifiedReceiptReceiptDictionary["bid"].ToString() != purchaseInfoFromTransaction["bid"].ToString())
 			{
-				message.Append(String.Format("bid is not equal {0} | {1}", verifiedReceiptReceiptDictionary["bid"].ToString(), purchaseInfoFromTransaction["bid"].ToString()));
+				message.Append(String.Format("bid is not equal {0} | {1}", verifiedReceiptReceiptDictionary["bid"], purchaseInfoFromTransaction["bid"]));
 				
 				failCount++;
 			}
 			
 			if (verifiedReceiptReceiptDictionary["product_id"].ToString() != purchaseInfoFromTransaction["product-id"].ToString())
 			{
-				message.Append(String.Format("product_id is not equal {0} | {1}", verifiedReceiptReceiptDictionary["product_id"].ToString(), purchaseInfoFromTransaction["product-id"].ToString()));
+				message.Append(String.Format("product_id is not equal {0} | {1}", verifiedReceiptReceiptDictionary["product_id"], purchaseInfoFromTransaction["product-id"]));
 				
 				failCount++;
 			}
 			
 			if (verifiedReceiptReceiptDictionary["quantity"].ToString() != purchaseInfoFromTransaction["quantity"].ToString())
 			{
-				message.Append(String.Format("quantity is not equal {0} | {1}", verifiedReceiptReceiptDictionary["quantity"].ToString(), purchaseInfoFromTransaction["quantity"].ToString()));
+				message.Append(String.Format("quantity is not equal {0} | {1}", verifiedReceiptReceiptDictionary["quantity"], purchaseInfoFromTransaction["quantity"]));
 				
 				failCount++;
 			}
 			
 			if (verifiedReceiptReceiptDictionary["item_id"].ToString() != purchaseInfoFromTransaction["item-id"].ToString())
 			{
-				message.Append(String.Format("item_id is not equal {0} | {1}", verifiedReceiptReceiptDictionary["item_id"].ToString(), purchaseInfoFromTransaction["item-id"].ToString()));
+				message.Append(String.Format("item_id is not equal {0} | {1}", verifiedReceiptReceiptDictionary["item_id"], purchaseInfoFromTransaction["item-id"]));
 				
 				failCount++;
 			}
 			
 			var isValidIdentifier = false;
 			
-			if (UIDevice.CurrentDevice.RespondsToSelector(new MonoTouch.ObjCRuntime.Selector("identifierForVendor"))) 
+			if (UIDevice.CurrentDevice.RespondsToSelector(new MonoTouch.ObjCRuntime.Selector("identifierForVendor"))) //iOS 6.0+
 			{
 				var localIdentifier = UIDevice.CurrentDevice.IdentifierForVendor.AsString();
 				
@@ -172,11 +172,13 @@ namespace Touchin.iOS.InApp
 				if (purchaseInfoUniqueVendorId != null && verifiedReceiptVendorIdentifier != null) 
 				{
 					var vendorId = purchaseInfoUniqueVendorId.AsString();
-					
-					if (!vendorId.Equals(verifiedReceiptVendorIdentifier.AsString(), StringComparison.InvariantCultureIgnoreCase) || !vendorId.Equals(localIdentifier, StringComparison.InvariantCultureIgnoreCase))
+					var receiptVendorIdentifier = verifiedReceiptVendorIdentifier.AsString();
+
+					if (!vendorId.Equals(receiptVendorIdentifier, StringComparison.InvariantCultureIgnoreCase))
+						// || !vendorId.Equals(localIdentifier, StringComparison.InvariantCultureIgnoreCase)) //DOTO: Something changes again, check data
 					{
 						//#if !DEBUG
-						message.Append(String.Format("vendorId is not equal verifiedReceiptVendorIdentifier {0} | {1}", vendorId, verifiedReceiptVendorIdentifier.AsString()));
+						message.Append(String.Format("vendorId is not equal verifiedReceiptVendorIdentifier {0} | {1}", vendorId, receiptVendorIdentifier));
 						message.Append(String.Format("vendorId is not equal localIdentifier {0} | {1}", vendorId, localIdentifier));						
 						
 						failCount++; // comment this line out to test in the Simulator
@@ -190,7 +192,7 @@ namespace Touchin.iOS.InApp
 			} 
 			
 			
-			if(!isValidIdentifier) 
+			if(!isValidIdentifier) //iOS 5.1.1-
 			{
 				var localIdentifier = UIDevice.CurrentDevice.UniqueIdentifier;
 				
@@ -235,11 +237,9 @@ namespace Touchin.iOS.InApp
 			
 			var transactionId = purchaseInfoDict["transaction-id"].AsString();
 			var purchaseDateString = purchaseInfoDict["purchase-date"].AsString();
-			var signature = receiptDict["signature"].ToString();
 			
 			var dateFormat = "yyyy-MM-dd HH:mm:ss GMT";
 			purchaseDateString = purchaseDateString.Replace("Etc/", "");
-			var purchaseDate = DateTime.ParseExact(purchaseDateString, dateFormat, System.Globalization.CultureInfo.InvariantCulture);
 			
 			if (!IsTransactionUnique(transactionId))
 			{
@@ -248,8 +248,10 @@ namespace Touchin.iOS.InApp
 				return false;		
 			}
 			
-			//			var result = CheckReceiptSecurity(transactionPurchaseInfo, signature, purchaseDate);
-			//			if (!result) return false;
+			//var signature = receiptDict["signature"].ToString();
+			//var purchaseDate = DateTime.ParseExact(purchaseDateString, dateFormat, System.Globalization.CultureInfo.InvariantCulture);
+			//var result = CheckReceiptSecurity(transactionPurchaseInfo, signature, purchaseDate);
+			//if (!result) return false;
 			
 			if (!DoTransactionDetailsMatchPurchaseInfo(transaction, purchaseInfoDict))
 			{				
@@ -285,22 +287,24 @@ namespace Touchin.iOS.InApp
 			
 			if (transaction == null || purchaseInfoDict == null)
 			{
-				message.Send(String.Format("transaction == {0} | purchaseInfoDict == {1}", transaction == null, purchaseInfoDict == null));
+				message.Send(String.Format("transaction is null {0} | purchaseInfoDict is null {1}", transaction == null, purchaseInfoDict == null));
 				
 				return false;
 			}
 			
 			int failCount = 0;
-			
-			if (transaction.Payment.ProductIdentifier != purchaseInfoDict["product-id"].ToString().Trim('"'))
+
+			var productIdentifier = purchaseInfoDict["product-id"].ToString().Trim('"');
+			if (transaction.Payment.ProductIdentifier != productIdentifier)
 			{
-				message.Append(String.Format("transaction.Payment.ProductIdentifier != purchaseInfoDict[product-id] {0} transaction.Payment.ProductIdentifier: {1} purchaseInfoDict[product-id]: {2} ", Environment.NewLine, transaction.Payment.ProductIdentifier, purchaseInfoDict["product-id"].ToString().Trim('"')));
+				message.Append(String.Format("transaction.Payment.ProductIdentifier != purchaseInfoDict[product-id] {0} transaction.Payment.ProductIdentifier: {1} purchaseInfoDict[product-id]: {2} ", Environment.NewLine, transaction.Payment.ProductIdentifier, productIdentifier));
 				failCount++;
 			}
-			
-			if (transaction.TransactionIdentifier != purchaseInfoDict["transaction-id"].ToString().Trim('"'))
+
+			var transactionIdentifier = purchaseInfoDict["transaction-id"].ToString().Trim('"');
+			if (transaction.TransactionIdentifier != transactionIdentifier)
 			{
-				message.Append(String.Format("transaction.TransactionIdentifier != purchaseInfoDict[transaction-id] {0} transaction.TransactionIdentifier: {1} purchaseInfoDict[transaction-id]: {2} ", Environment.NewLine, transaction.TransactionIdentifier, purchaseInfoDict["transaction-id"].ToString().Trim('"')));					
+				message.Append(String.Format("transaction.TransactionIdentifier != purchaseInfoDict[transaction-id] {0} transaction.TransactionIdentifier: {1} purchaseInfoDict[transaction-id]: {2} ", Environment.NewLine, transaction.TransactionIdentifier, transactionIdentifier));					
 				failCount++;
 			}
 			

@@ -10,6 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Touchin.iOS.InApp</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <ReleaseVersion>0.9.4</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -46,12 +47,14 @@
     <MtouchLink>None</MtouchLink>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_LITE|iPhone' ">
-    <DebugType>none</DebugType>
+    <DebugType>full</DebugType>
     <Optimize>False</Optimize>
     <OutputPath>bin\iPhone\Debug_LITE</OutputPath>
     <WarningLevel>4</WarningLevel>
     <AssemblyName>TouchiniOSInApp</AssemblyName>
     <CodesignKey>iPhone Developer</CodesignKey>
+    <DebugSymbols>True</DebugSymbols>
+    <DefineConstants>INAPP_SANDBOX;LITE:DEBUG:</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
