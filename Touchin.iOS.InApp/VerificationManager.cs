@@ -174,8 +174,7 @@ namespace Touchin.iOS.InApp
 					var vendorId = purchaseInfoUniqueVendorId.AsString();
 					var receiptVendorIdentifier = verifiedReceiptVendorIdentifier.AsString();
 
-					if (!vendorId.Equals(receiptVendorIdentifier, StringComparison.InvariantCultureIgnoreCase))
-						// || !vendorId.Equals(localIdentifier, StringComparison.InvariantCultureIgnoreCase)) //DOTO: Something changes again, check data
+					if (!vendorId.Equals(receiptVendorIdentifier, StringComparison.InvariantCultureIgnoreCase) || !vendorId.Equals(localIdentifier, StringComparison.InvariantCultureIgnoreCase))
 					{
 						//#if !DEBUG
 						message.Append(String.Format("vendorId is not equal verifiedReceiptVendorIdentifier {0} | {1}", vendorId, receiptVendorIdentifier));
