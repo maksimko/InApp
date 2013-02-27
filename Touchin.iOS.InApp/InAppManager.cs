@@ -267,8 +267,14 @@ namespace Touchin.iOS.InApp
 			SKPaymentQueue.DefaultQueue.AddPayment(payment);
 		}
 
-		private void SendErorrData(string message, NSError error)
+		private void SendErorrData (string message, NSError error)
 		{
+			if (error == null) 
+			{
+				Logger.Error(message);
+				return;
+			}
+
 			var errorMessage = String.Concat(message, Environment.NewLine, error.Code, Environment.NewLine, error.ToString(), Environment.NewLine);
 
 			if (error.UserInfo != null)
