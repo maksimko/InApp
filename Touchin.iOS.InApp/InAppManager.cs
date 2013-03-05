@@ -26,6 +26,8 @@ namespace Touchin.iOS.InApp
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
 		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;
+
+		event Action UserCancelled;
 						
 		event Action<InAppManagerInterface> RestoreSucceed;
 		event Action<InAppManagerInterface, NSError> RestoreFailed;
@@ -55,7 +57,9 @@ namespace Touchin.iOS.InApp
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionInitiated;
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
 		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;		
+		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;
+
+		event Action UserCancelled;
 
 		public event Action<InAppManagerInterface> RestoreSucceed;
 		public event Action<InAppManagerInterface, NSError> RestoreFailed;
@@ -225,7 +229,10 @@ namespace Touchin.iOS.InApp
 			}
 			else
 			{
-				PaymentTransactionFailed.Raise(_inAppManagerInstance, transaction);
+				if (transaction.Error.Code == 2)
+					UserCancelled.Raise();
+				else
+					PaymentTransactionFailed.Raise(_inAppManagerInstance, transaction);
 			}
 		}
 
@@ -257,7 +264,10 @@ namespace Touchin.iOS.InApp
 		
 		internal void RaiseRestoreFailed(NSError error)
 		{
-			RestoreFailed.Raise(_inAppManagerInstance, error);
+			if (error.Code == 2)
+				UserCancelled.Raise ();
+			else
+				RestoreFailed.Raise(_inAppManagerInstance, error);
 			
 			SendErorrData("InApp restore completed transactions.", error);
 		}
@@ -265,6 +275,27 @@ namespace Touchin.iOS.InApp
 		internal void AddPayment(SKPayment payment)
 		{
 			SKPaymentQueue.DefaultQueue.AddPayment(payment);
+		}
+
+		internal void SaveDownload (SKDownload download)
+		{
+			var documentsPath = Environment.GetFolderPath (Environment.SpecialFolder.Personal);
+			var targetfolder = System.IO.Path.Combine (documentsPath, download.Transaction.Payment.ProductIdentifier);
+			if (!System.IO.Directory.Exists (targetfolder))
+				System.IO.Directory.CreateDirectory (targetfolder);
+
+			foreach (var file in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(download.ContentUrl.Path, "Contents"))) 
+			{ // Contents directory is the default in .PKG files			
+				var fileName = file.Substring (file.LastIndexOf ("/") + 1);
+				var newFilePath = System.IO.Path.Combine(targetfolder, fileName);
+
+				if (!System.IO.File.Exists(newFilePath)) // HACK: this won't support new versions...
+					System.IO.File.Copy (file, newFilePath);
+				else
+					Console.WriteLine ("already exists " + newFilePath);
+			}
+
+			RaiseCompletePaymentTransaction (download.Transaction, true);
 		}
 
 		private void SendErorrData (string message, NSError error)
