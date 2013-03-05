@@ -1,6 +1,6 @@
 using System;
 
-namespace Touchin.iOS.InApp.Common
+namespace Touchin.iOS.InApp.Contracts
 {
 	public interface ILog
 	{

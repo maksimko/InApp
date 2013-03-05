@@ -6,68 +6,41 @@ using System.Collections.Generic;
 using System.Linq;
 using Touchin.iOS.InApp.Common;
 using Touchin.iOS.InApp.Extensions;
+using System.IO;
+using Touchin.iOS.InApp.Contracts;
 
 namespace Touchin.iOS.InApp
 {
-	public enum OperationType
-	{
-		None,
-		Activation,
-		Restoring
-	}
-
-	public interface InAppManagerInterface
-	{
-		event Action<NSError> ProductRequestFailed;
-		event Action<InAppManagerInterface> ProductRequestSucceed;
-		event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
-
-		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionInitiated;
-		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
-		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
-		event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;
-
-		event Action UserCancelled;
-						
-		event Action<InAppManagerInterface> RestoreSucceed;
-		event Action<InAppManagerInterface, NSError> RestoreFailed;
-
-		Dictionary<string, SKProduct> AvaliableProducts { get; }
-		List<string> NotAvaliableProducts { get; }
-		bool CanMakePayments { get; }
-		bool IsPurchasing { get; set; }
-		OperationType LastOperation { get; }
-		ILog Logger { get; set; }
-
-		void RequestProductsData(string productIdentifiers);
-		void RequestProductsData(List<string> productIdentifiers);
-		void Purchase(string productId);
-		void Purchase(SKProduct product);
-		void RestorePurchases();
-	}
-
-
-
 	public class InAppManager : SKProductsRequestDelegate, InAppManagerInterface
 	{
 		public event Action<InAppManagerInterface> ProductRequestSucceed;
 		public event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 		public event Action<NSError> ProductRequestFailed;
 
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionInitiated;
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionSucceed;
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionFailed;
-		public event Action<InAppManagerInterface, SKPaymentTransaction> PaymentTransactionRestored;
+		public event Action<string> ProductNotAvailable;
 
-		event Action UserCancelled;
+		public event Action<InAppManagerInterface, string> PaymentTransactionInitiated;
+		public event Action<InAppManagerInterface, string> PaymentTransactionSucceed;
+		public event Action<InAppManagerInterface, string, NSError> PaymentTransactionFailed;
+		public event Action<InAppManagerInterface, string> PaymentTransactionRestored;
+
+		public event Action UserCancelled;
 
 		public event Action<InAppManagerInterface> RestoreSucceed;
 		public event Action<InAppManagerInterface, NSError> RestoreFailed;
+
+		public event Action<string, float, double> DownloadEstimateChanged;
+		public event Action<string, NSError> DownloadPaused;
+		public event Action<string, string> DownloadFinished;
+		public event Action<string, NSError> DownloadFailed;
+		public event Action<string, NSError> DownloadCancelled;		
+		public event Action<IEnumerable<string>> SavingCompleted;
 
 		private SKPaymentTransactionObserver _paymentTransactionObserver;		
 		private SKProductsRequest _productsRequest;
 		private Dictionary<string, SKProduct> _avaliableProducts;
 		private string[] _notAvaliableProducts;
+		private bool _canMakePurchase;
 
 		public bool IsPurchasing { get; set; }
 
@@ -94,6 +67,23 @@ namespace Touchin.iOS.InApp
 			}
 		}
 
+		private IContentManager _contentManager;
+		public IContentManager ContentManager 
+		{ 
+			get
+			{
+				return _contentManager ?? (_contentManager = new ContentManager());
+			}
+
+			set
+			{
+				if (IsPurchasing)
+					throw new OperationCanceledException("Can't change content manager during purchasing");
+
+				_contentManager = value;
+			}
+		}
+
 		private static InAppManagerInterface _inAppManagerInstance;
 		public static InAppManagerInterface Instance
 		{
@@ -104,6 +94,8 @@ namespace Touchin.iOS.InApp
 		{
 			_paymentTransactionObserver = new InAppPaymentObserver(this);
 			SKPaymentQueue.DefaultQueue.AddTransactionObserver(_paymentTransactionObserver);
+
+			_canMakePurchase = false;
 		}
 
 		public Dictionary<string, SKProduct> AvaliableProducts
@@ -162,8 +154,22 @@ namespace Touchin.iOS.InApp
 
 		public void Purchase(string productId)
 		{
+			if (!_canMakePurchase)
+				throw new OperationCanceledException ("Can't make purchase, request product data before. Call RequestProductsData before Purchase.");
+
 			_latOperation = OperationType.Activation;
-			var payment = SKPayment.PaymentWithProduct(productId);
+
+			var product = AvaliableProducts [productId];
+
+			if (product == null) 
+			{
+				ProductNotAvailable.Raise(productId);
+				SendErorrData(String.Format ("Can't purchase '{0}'. Product not available.", productId), null);
+
+				return;
+			}
+
+			var payment = SKPayment.PaymentWithProduct(product);
 
 			AddPayment(payment);
 		}
@@ -197,7 +203,9 @@ namespace Touchin.iOS.InApp
 			}
 
 			_notAvaliableProducts = response.InvalidProducts;
-			
+
+			_canMakePurchase = true;
+
 			ProductsInfoReceived.Raise(AvaliableProducts);
 		}
 
@@ -225,14 +233,14 @@ namespace Touchin.iOS.InApp
 
 			if (isValid && isSuccessfull)
 			{
-				PaymentTransactionSucceed.Raise(_inAppManagerInstance, transaction);
+				PaymentTransactionSucceed.Raise(_inAppManagerInstance, transaction.Payment.ProductIdentifier);
 			}
 			else
 			{
 				if (transaction.Error.Code == 2)
 					UserCancelled.Raise();
 				else
-					PaymentTransactionFailed.Raise(_inAppManagerInstance, transaction);
+					PaymentTransactionFailed.Raise(_inAppManagerInstance, transaction.Payment.ProductIdentifier, transaction.Error);
 			}
 		}
 
@@ -240,14 +248,14 @@ namespace Touchin.iOS.InApp
 		{			
 			IsPurchasing = true;
 
-			PaymentTransactionInitiated.Raise(_inAppManagerInstance, transaction);
+			PaymentTransactionInitiated.Raise(_inAppManagerInstance, transaction.Payment.ProductIdentifier);
 		}
 
 		internal void RaiseRestoredPaymentTransaction(SKPaymentTransaction transaction)
 		{
 			RaiseCompletePaymentTransaction(transaction);
 
-			PaymentTransactionRestored.Raise(_inAppManagerInstance, transaction);
+			PaymentTransactionRestored.Raise(_inAppManagerInstance, transaction.Payment.ProductIdentifier);
 		}
 
 		internal void RaiseFailedPaymentTransaction(SKPaymentTransaction transaction)
@@ -269,7 +277,7 @@ namespace Touchin.iOS.InApp
 			else
 				RestoreFailed.Raise(_inAppManagerInstance, error);
 			
-			SendErorrData("InApp restore completed transactions.", error);
+			SendErorrData("InApp restore completed transactions failed.", error);
 		}
 
 		internal void AddPayment(SKPayment payment)
@@ -279,23 +287,43 @@ namespace Touchin.iOS.InApp
 
 		internal void SaveDownload (SKDownload download)
 		{
-			var documentsPath = Environment.GetFolderPath (Environment.SpecialFolder.Personal);
-			var targetfolder = System.IO.Path.Combine (documentsPath, download.Transaction.Payment.ProductIdentifier);
-			if (!System.IO.Directory.Exists (targetfolder))
-				System.IO.Directory.CreateDirectory (targetfolder);
+			var contentsPath = Path.Combine(download.ContentUrl.Path, "Contents");
+			var sourceFilesPatches = Directory.EnumerateFiles (contentsPath);
+			var productId = download.Transaction.Payment.ProductIdentifier;
 
-			foreach (var file in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(download.ContentUrl.Path, "Contents"))) 
-			{ // Contents directory is the default in .PKG files			
-				var fileName = file.Substring (file.LastIndexOf ("/") + 1);
-				var newFilePath = System.IO.Path.Combine(targetfolder, fileName);
+			ContentManager.SaveDownload (productId, sourceFilesPatches, (savedFilePatches) => { 
+				SavingCompleted.Raise(savedFilePatches);
+				RaiseCompletePaymentTransaction(download.Transaction);
+			});
+		}
 
-				if (!System.IO.File.Exists(newFilePath)) // HACK: this won't support new versions...
-					System.IO.File.Copy (file, newFilePath);
-				else
-					Console.WriteLine ("already exists " + newFilePath);
-			}
+		internal void RaiseDownloadEstimateChanged(SKDownload download)
+		{
+			DownloadEstimateChanged.Raise(download.Transaction.Payment.ProductIdentifier, download.Progress, download.TimeRemaining);
+		}
 
-			RaiseCompletePaymentTransaction (download.Transaction, true);
+		internal void RaiseDownloadPaused(SKDownload download)
+		{
+			DownloadPaused.Raise (download.Transaction.Payment.ProductIdentifier, download.Error);
+		}
+
+		internal void RaiseDownloadCompleted(SKDownload download)
+		{
+			DownloadFinished.Raise (download.Transaction.Payment.ProductIdentifier, download.ContentIdentifier);
+		}
+
+		internal void RaiseDownloadFailed(SKDownload download)
+		{
+			DownloadFailed.Raise (download.Transaction.Payment.ProductIdentifier, download.Error);
+
+			SendErorrData ("Download failed", download.Error);
+		}
+
+		internal void RaiseDownloadCancelled(SKDownload download)
+		{
+			DownloadCancelled.Raise (download.Transaction.Payment.ProductIdentifier, download.Error);
+
+			SendErorrData ("Download cancelled", download.Error);			
 		}
 
 		private void SendErorrData (string message, NSError error)

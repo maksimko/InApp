@@ -69,14 +69,19 @@
     <Compile Include="InAppPaymentObserver.cs" />
     <Compile Include="VerificationManager.cs" />
     <Compile Include="Extensions\SKProductExtension.cs" />
-    <Compile Include="Common\ILog.cs" />
     <Compile Include="Common\EmptyLogger.cs" />
     <Compile Include="Extensions\ActionExtensions.cs" />
     <Compile Include="Extensions\JsonValueExtensions.cs" />
     <Compile Include="Common\LogMessage.cs" />
+    <Compile Include="ContentManager.cs" />
+    <Compile Include="Contracts\ILog.cs" />
+    <Compile Include="Contracts\IContentManager.cs" />
+    <Compile Include="Contracts\InAppManagerInterface.cs" />
+    <Compile Include="Common\OpertaionType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="Common\" />
+    <Folder Include="Contracts\" />
   </ItemGroup>
 </Project>

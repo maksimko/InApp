@@ -1,5 +1,6 @@
 using System;
 using Touchin.iOS.InApp.Common;
+using Touchin.iOS.InApp.Contracts;
 
 namespace Touchin.iOS.InApp
 {

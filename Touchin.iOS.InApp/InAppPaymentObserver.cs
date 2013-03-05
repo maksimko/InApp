@@ -55,28 +55,26 @@ namespace Touchin.iOS.InApp
 			foreach (var download in downloads) {
 				switch (download.DownloadState) {
 					case SKDownloadState.Active:
-						// TODO: implement a notification to the UI (progress bar or something?)
-						Console.WriteLine ("Download progress:" + download.Progress);
-						Console.WriteLine ("Time remaining:   " + download.TimeRemaining); // -1 means 'still calculating'
+						_inAppManager.RaiseDownloadEstimateChanged(download);
+
 						break;
 					case SKDownloadState.Finished:
-						Console.WriteLine ("Finished!!!!");
-						Console.WriteLine ("Content URL:" + download.ContentUrl);
-						
-						// UNPACK HERE! Calls FinishTransaction when it's done
+						_inAppManager.RaiseDownloadCompleted(download);						
 						_inAppManager.SaveDownload (download);
 						
 						break;
 					case SKDownloadState.Failed:
-						Console.WriteLine ("Failed"); 
-						// TODO: UI?
+						_inAppManager.RaiseDownloadFailed(download);						
+
 						break;
 					case SKDownloadState.Cancelled:
-						Console.WriteLine ("Cancelled"); 
-						// TODO: UI?
+						_inAppManager.RaiseDownloadCancelled(download);												
+
 						break;
 					case SKDownloadState.Paused:
 					case SKDownloadState.Waiting:
+						_inAppManager.RaiseDownloadPaused(download);						
+
 						break;
 					default:
 						break;

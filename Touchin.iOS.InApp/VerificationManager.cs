@@ -7,6 +7,7 @@ using MonoTouch.UIKit;
 using MonoTouch.Security;
 using Touchin.iOS.InApp.Extensions;
 using Touchin.iOS.InApp.Common;
+using Touchin.iOS.InApp.Contracts;
 
 namespace Touchin.iOS.InApp
 {
@@ -237,7 +238,6 @@ namespace Touchin.iOS.InApp
 			var transactionId = purchaseInfoDict["transaction-id"].AsString();
 			var purchaseDateString = purchaseInfoDict["purchase-date"].AsString();
 			
-			var dateFormat = "yyyy-MM-dd HH:mm:ss GMT";
 			purchaseDateString = purchaseDateString.Replace("Etc/", "");
 			
 			if (!IsTransactionUnique(transactionId))
