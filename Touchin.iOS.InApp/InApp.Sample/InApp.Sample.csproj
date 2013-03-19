@@ -83,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+    <Folder Include="Views\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -90,13 +91,14 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="InApp_SampleViewController.cs" />
-    <Compile Include="InApp_SampleViewController.designer.cs">
-      <DependentUpon>InApp_SampleViewController.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <InterfaceDefinition Include="InApp_SampleViewController.xib" />
+    <Compile Include="InAppViewController.cs" />
+    <Compile Include="Views\InAppView.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\Touchin.iOS.InApp.csproj">
+      <Project>{697D4B56-0EC4-47B5-B76F-A8615362E324}</Project>
+      <Name>Touchin.iOS.InApp</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
