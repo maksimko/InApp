@@ -84,6 +84,7 @@
   <ItemGroup>
     <Folder Include="Resources\" />
     <Folder Include="Views\" />
+    <Folder Include="Controls\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -93,6 +94,7 @@
     <Compile Include="AppDelegate.cs" />
     <Compile Include="InAppViewController.cs" />
     <Compile Include="Views\InAppView.cs" />
+    <Compile Include="Controls\Buttons.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

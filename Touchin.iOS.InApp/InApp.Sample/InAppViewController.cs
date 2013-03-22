@@ -4,6 +4,9 @@ using System.Drawing;
 using MonoTouch.Foundation;
 using MonoTouch.UIKit;
 using Touchin.iOS.InApp;
+using System.Collections.Generic;
+using MonoTouch.StoreKit;
+using System.Linq;
 
 namespace InApp.Sample
 {
@@ -24,6 +27,8 @@ namespace InApp.Sample
 			view.ProductBuy += OnProductBuy;
 
 			View = view;
+
+			InAppManager.Instance.ProductsInfoReceived += OnProductsInfoReceived;			
 		}
 
 		private void ApplyStyles()
@@ -32,7 +37,21 @@ namespace InApp.Sample
 		}
 
 		private void OnProductInfoRequested()
-		{}
+		{
+			var purchases = (NSDictionary)NSBundle.MainBundle.ObjectForInfoDictionary("PurchaseProducts");
+
+			foreach(var key in purchases.Keys)
+			{
+				var identifier = purchases[key].ToString();
+
+				InAppManager.Instance.RequestProductsData(identifier);
+			}
+		}
+
+		void OnProductsInfoReceived (Dictionary<string, SKProduct> products)
+		{
+			((InAppView)View).BindTo(products.Values.ToList());
+		}
 
 		private void OnProductRestore()
 		{}

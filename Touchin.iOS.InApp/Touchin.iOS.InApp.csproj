@@ -10,7 +10,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Touchin.iOS.InApp</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <ReleaseVersion>0.9.4</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -78,10 +77,14 @@
     <Compile Include="Contracts\IContentManager.cs" />
     <Compile Include="Contracts\InAppManagerInterface.cs" />
     <Compile Include="Common\OpertaionType.cs" />
+    <Compile Include="Common\Product.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="Common\" />
     <Folder Include="Contracts\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Contracts\Info.plist" />
   </ItemGroup>
 </Project>
