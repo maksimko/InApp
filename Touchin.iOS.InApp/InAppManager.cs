@@ -17,7 +17,7 @@ namespace Touchin.iOS.InApp
 		public event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 		public event Action<NSError> ProductRequestFailed;
 
-		public event Action<string> ProductNotAvailable;
+		public event Action<string> ProductPurchaseFailed;
 
 		public event Action<InAppManagerInterface, string> PaymentTransactionInitiated;
 		public event Action<InAppManagerInterface, string> PaymentTransactionSucceed;
@@ -40,7 +40,7 @@ namespace Touchin.iOS.InApp
 		private SKProductsRequest _productsRequest;
 		private Dictionary<string, SKProduct> _avaliableProducts;
 		private string[] _notAvaliableProducts;
-		private bool _canMakePurchase;
+		private bool _productInfoReceived;
 
 		public bool IsPurchasing { get; set; }
 
@@ -85,7 +85,7 @@ namespace Touchin.iOS.InApp
 		}
 
 		private static InAppManagerInterface _inAppManagerInstance;
-		public static InAppManagerInterface Instance
+		public static InAppManagerInterface Default
 		{
 			get { return _inAppManagerInstance ?? (_inAppManagerInstance = new InAppManager()); }
 		}
@@ -95,7 +95,7 @@ namespace Touchin.iOS.InApp
 			_paymentTransactionObserver = new InAppPaymentObserver(this);
 			SKPaymentQueue.DefaultQueue.AddTransactionObserver(_paymentTransactionObserver);
 
-			_canMakePurchase = false;
+			_productInfoReceived = false;
 		}
 
 		public Dictionary<string, SKProduct> AvaliableProducts
@@ -154,21 +154,20 @@ namespace Touchin.iOS.InApp
 
 		public void Purchase(string productId)
 		{
-			if (!_canMakePurchase)
-				throw new OperationCanceledException ("Can't make purchase, request product data before. Call RequestProductsData before Purchase.");
+			if (!_productInfoReceived)
+					throw new OperationCanceledException ("Can't make purchase, request product data before. Call RequestProductsData before Purchase.");
 
 			_latOperation = OperationType.Activation;
 
-			var product = AvaliableProducts [productId];
-
-			if (product == null) 
+			if (!AvaliableProducts.ContainsKey(productId)) 
 			{
-				ProductNotAvailable.Raise(productId);
+				ProductPurchaseFailed.Raise(productId);
 				SendErorrData(String.Format ("Can't purchase '{0}'. Product not available.", productId), null);
 
 				return;
 			}
 
+			var product = AvaliableProducts [productId];
 			var payment = SKPayment.PaymentWithProduct(product);
 
 			AddPayment(payment);
@@ -195,6 +194,8 @@ namespace Touchin.iOS.InApp
 
 		public override void ReceivedResponse(SKProductsRequest request, SKProductsResponse response)
 		{
+			_productInfoReceived = true;
+
 			SKProduct[] products = response.Products;
 
 			foreach (var product in products)
@@ -203,8 +204,6 @@ namespace Touchin.iOS.InApp
 			}
 
 			_notAvaliableProducts = response.InvalidProducts;
-
-			_canMakePurchase = true;
 
 			ProductsInfoReceived.Raise(AvaliableProducts);
 		}

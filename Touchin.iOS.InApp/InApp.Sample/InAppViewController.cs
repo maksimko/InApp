@@ -12,6 +12,12 @@ namespace InApp.Sample
 {
 	public class InAppViewController : UIViewController
 	{
+		public new InAppView View
+		{
+			get { return base.View as InAppView; }
+			set { base.View = value; }
+		}
+
 		public InAppViewController ()
 		{
 			InitSubviews();
@@ -28,7 +34,7 @@ namespace InApp.Sample
 
 			View = view;
 
-			InAppManager.Instance.ProductsInfoReceived += OnProductsInfoReceived;			
+			InAppManager.Default.ProductsInfoReceived += OnProductsInfoReceived;
 		}
 
 		private void ApplyStyles()
@@ -44,21 +50,25 @@ namespace InApp.Sample
 			{
 				var identifier = purchases[key].ToString();
 
-				InAppManager.Instance.RequestProductsData(identifier);
+				InAppManager.Default.RequestProductsData(identifier);
 			}
 		}
 
 		void OnProductsInfoReceived (Dictionary<string, SKProduct> products)
 		{
-			((InAppView)View).BindTo(products.Values.ToList());
+			View.BindTo(products.Values.ToList());
+			View.ActivateBuyButton();
 		}
 
 		private void OnProductRestore()
-		{}
+		{
+			InAppManager.Default.RestorePurchases();
+		}
 
-		private void OnProductBuy()
-		{}
-
+		private void OnProductBuy(SKProduct product)
+		{
+			InAppManager.Default.Purchase(product);
+		}
 	}
 }
 

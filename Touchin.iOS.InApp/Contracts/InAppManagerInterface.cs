@@ -13,7 +13,7 @@ namespace Touchin.iOS.InApp.Contracts
 		event Action<InAppManagerInterface> ProductRequestSucceed;
 		event Action<Dictionary<string, SKProduct>> ProductsInfoReceived;
 
-		event Action<string> ProductNotAvailable;
+		event Action<string> ProductPurchaseFailed;
 		
 		event Action<InAppManagerInterface, string> PaymentTransactionInitiated;
 		event Action<InAppManagerInterface, string> PaymentTransactionSucceed;
