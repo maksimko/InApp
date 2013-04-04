@@ -125,9 +125,12 @@ namespace InApp.Sample
 
 		public void BindTo(List<SKProduct> products)
 		{
+			if (products.Count == 0)
+				return;
+
 			_product = products.First();
 			_priceLabel.Text = _product.LocalizedPrice();
-			_textView.Text = _product.Description;
+			_textView.Text = _product.LocalizedTitle + " - " +_product.LocalizedDescription;
 		}
 
 		public void ActivateBuyButton ()
@@ -138,9 +141,6 @@ namespace InApp.Sample
 		public override void LayoutSubviews ()
 		{
 			base.LayoutSubviews();
-//			_requestButton.Center = new PointF(Bounds.GetMidX(), Bounds.GetMidY());
-//			_restoreButton.Center = new PointF(Bounds.Right - _restoreButton.Bounds.Width, _restoreButton.Frame.Height);
-//			_buyButton.Center = new PointF(Bounds.Left + _buyButton.Bounds.Width, _buyButton.Frame.Height);
 
 		}
 	}

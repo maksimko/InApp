@@ -7,5 +7,13 @@
 		<key>full version</key>
 		<string>com.inappsample.full</string>
 	</dict>
+	<key>CFBundleDisplayName</key>
+	<string>InApper</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>MinimumOSVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.touchin.sooner.lite</string>
 </dict>
 </plist>

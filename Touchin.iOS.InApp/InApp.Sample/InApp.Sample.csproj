@@ -23,6 +23,8 @@
     <ConsolePause>False</ConsolePause>
     <MtouchLink>None</MtouchLink>
     <MtouchDebug>True</MtouchDebug>
+    <MtouchI18n />
+    <MtouchArch>ARMv7</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -43,7 +45,11 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>False</ConsolePause>
     <MtouchDebug>True</MtouchDebug>
-    <CodesignKey>iPhone Developer</CodesignKey>
+    <CodesignKey>iPhone Developer: Andrey Baskov (59GMY563EH)</CodesignKey>
+    <IpaPackageName />
+    <CodesignProvision>6C4D12C0-A7E0-4546-B957-E838D8BCBD29</CodesignProvision>
+    <MtouchI18n />
+    <MtouchArch>ARMv7</MtouchArch>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>none</DebugType>
@@ -85,6 +91,7 @@
     <Folder Include="Resources\" />
     <Folder Include="Views\" />
     <Folder Include="Controls\" />
+    <Folder Include="Core\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Info.plist" />
@@ -95,6 +102,7 @@
     <Compile Include="InAppViewController.cs" />
     <Compile Include="Views\InAppView.cs" />
     <Compile Include="Controls\Buttons.cs" />
+    <Compile Include="Core\Purchases.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

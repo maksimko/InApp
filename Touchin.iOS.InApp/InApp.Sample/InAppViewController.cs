@@ -44,14 +44,7 @@ namespace InApp.Sample
 
 		private void OnProductInfoRequested()
 		{
-			var purchases = (NSDictionary)NSBundle.MainBundle.ObjectForInfoDictionary("PurchaseProducts");
-
-			foreach(var key in purchases.Keys)
-			{
-				var identifier = purchases[key].ToString();
-
-				InAppManager.Default.RequestProductsData(identifier);
-			}
+			InAppManager.Default.RequestProductsData(Purchases.PossiblePurchases);
 		}
 
 		void OnProductsInfoReceived (Dictionary<string, SKProduct> products)

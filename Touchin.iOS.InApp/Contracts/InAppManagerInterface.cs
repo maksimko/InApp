@@ -33,7 +33,7 @@ namespace Touchin.iOS.InApp.Contracts
 		event Action<IEnumerable<string>> SavingCompleted;		
 		
 		Dictionary<string, SKProduct> AvaliableProducts { get; }
-		List<string> NotAvaliableProducts { get; }
+		IEnumerable<string> NotAvaliableProducts { get; }
 		bool CanMakePayments { get; }
 		bool IsPurchasing { get; set; }
 		OperationType LastOperation { get; }
@@ -41,7 +41,7 @@ namespace Touchin.iOS.InApp.Contracts
 		IContentManager ContentManager { get; set; }
 		
 		void RequestProductsData(string productIdentifiers);
-		void RequestProductsData(List<string> productIdentifiers);
+		void RequestProductsData(IEnumerable<string> productIdentifiers);
 		void Purchase(string productId);
 		void Purchase(SKProduct product);
 		void RestorePurchases();

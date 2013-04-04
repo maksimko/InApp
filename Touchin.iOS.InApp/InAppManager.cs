@@ -8,6 +8,7 @@ using Touchin.iOS.InApp.Common;
 using Touchin.iOS.InApp.Extensions;
 using System.IO;
 using Touchin.iOS.InApp.Contracts;
+using MonoTouch.UIKit;
 
 namespace Touchin.iOS.InApp
 {
@@ -111,7 +112,7 @@ namespace Touchin.iOS.InApp
 			}
 		}
 
-		public List<string> NotAvaliableProducts
+		public IEnumerable<string> NotAvaliableProducts
 		{
 			get 
 			{
@@ -134,16 +135,16 @@ namespace Touchin.iOS.InApp
 			RequestProductsData(new List<string>(1) { productIdentifiers });
 		}
 
-		public void RequestProductsData(List<string> productIdentifiers)
+		public void RequestProductsData(IEnumerable<string> productIdentifiers)
 		{
 			IsPurchasing = true;
 
-			var array = new NSString[productIdentifiers.Count];
+			var array = new NSString[productIdentifiers.Count()];
 
-			for(var i=0; i < productIdentifiers.Count; i++)
-			{
-				array[i] = new NSString(productIdentifiers[i]);
-			}
+			var i = 0;
+
+			foreach(var identifier in productIdentifiers)
+				array[i++] = new NSString(identifier);
 
 			var products = NSSet.MakeNSObjectSet<NSString>(array);
 
