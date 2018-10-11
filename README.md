@@ -1,5 +1,5 @@
 InApp
-======
+====
 
 iOS InApp manager
 
